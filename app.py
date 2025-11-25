@@ -26,14 +26,15 @@ st.write("Proyecto Final · Ciencia de Datos · Frida Arizmendi")
 # ============================================================
 # Sección 1: Dataset Preview
 # ============================================================
-st.header("📊 Vista general del dataset")
+st.header("📊 Vista general del datos")
 st.write(df.head())
 st.write(f"Total de registros: **{len(df):,}**")
 
 # ============================================================
 # Sección 2: Gráficas EDA
 # ============================================================
-st.header("📈 Análisis Exploratorio (EDA)")
+st.header("📈 Análisis de la informacion")
+st.header("¿Cuantos vehiculos puedo encontrar referente a un precio?")
 
 # ------- 1. Histograma de precios -------
 fig, ax = plt.subplots()
@@ -44,10 +45,12 @@ ax.set_ylabel("Frecuencia")
 st.pyplot(fig)
 
 # ------- 2. Precio por año -------
+
+st.header("¿Cual es el costo promedio de un vehiculo usado segun su Año?")
 avg_year = df.groupby("year")["price"].mean()
 fig, ax = plt.subplots()
 avg_year.plot(ax=ax)
-ax.set_title("Precio Promedio por Año")
+ax.set_title("Precio Promedio por Año Modelo")
 ax.set_xlabel("Año")
 ax.set_ylabel("Precio promedio")
 st.pyplot(fig)
@@ -61,6 +64,7 @@ ax.set_ylabel("Precio")
 st.pyplot(fig)
 
 # ------- 4. Top fabricantes -------
+st.header("¿Marcas con mas vehiculos usados en mercado?")
 top_manu = df["manufacturer"].value_counts().head(10)
 fig, ax = plt.subplots()
 top_manu.plot(kind="bar", ax=ax, color="orange")
@@ -138,5 +142,39 @@ st.header("🔮 Predicción del precio del vehículo")
 
 col1, col2 = st.columns(2)
 
-wi
+with col1:
+    year = st.number_input("Año del vehículo", min_value=1980, max_value=2024, value=2015)
+    odometer = st.number_input("Kilometraje", min_value=0, max_value=300000, value=60000)
+
+with col2:
+    manufacturer = st.selectbox("Fabricante", sorted(df["manufacturer"].unique()))
+    model_car = st.selectbox("Modelo", sorted(df["model"].unique()))
+    condition = st.selectbox("Condición", sorted(df["condition"].unique()))
+
+fuel = st.selectbox("Combustible", sorted(df["fuel"].unique()))
+transmission = st.selectbox("Transmisión", sorted(df["transmission"].unique()))
+state = st.selectbox("Estado (USA)", sorted(df["state"].unique()))
+paint = st.selectbox("Color", sorted(df["paint_color"].unique()))
+type_car = st.selectbox("Tipo de vehículo", sorted(df["type"].unique()))
+cylinders = st.selectbox("Cilindros", sorted(df["cylinders"].unique()))
+title_status = st.selectbox("Título legal", sorted(df["title_status"].unique()))
+
+input_data = pd.DataFrame([{
+    "year": year,
+    "odometer": odometer,
+    "manufacturer": manufacturer,
+    "model": model_car,
+    "condition": condition,
+    "fuel": fuel,
+    "title_status": title_status,
+    "transmission": transmission,
+    "state": state,
+    "type": type_car,
+    "paint_color": paint,
+    "cylinders": cylinders
+}])
+
+if st.button("Predecir precio"):
+    pred = model.predict(input_data)[0]
+    st.success(f"💰 El precio estimado del vehículo es: **${pred:,.2f} USD**")
 
