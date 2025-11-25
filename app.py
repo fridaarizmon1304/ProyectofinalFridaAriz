@@ -4,6 +4,66 @@ import matplotlib.pyplot as plt
 import joblib
 import numpy as np
 
+@st.cache_resource
+def train_model(df):
+    from sklearn.model_selection import train_test_split
+    from sklearn.compose import ColumnTransformer
+    from sklearn.preprocessing import OneHotEncoder
+    from sklearn.pipeline import Pipeline
+    from sklearn.ensemble import RandomForestRegressor
+    from sklearn.metrics import mean_squared_error, r2_score
+    import numpy as np
+
+    # Sample for speed
+    df_model = df.sample(n=20000, random_state=42) if len(df) > 20000 else df.copy()
+
+    y = df_model["price"]
+    X = df_model.drop(columns=["price"])
+
+    numeric_features = ["year", "odometer"]
+    categorical_features = [
+        "manufacturer", "model", "condition", "cylinders",
+        "fuel", "title_status", "transmission",
+        "state", "type", "paint_color"
+    ]
+
+    preprocessor = ColumnTransformer(
+        transformers=[
+            ("cat", OneHotEncoder(handle_unknown="ignore"), categorical_features)
+        ],
+        remainder="passthrough"
+    )
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.20, random_state=42
+    )
+
+    rf = RandomForestRegressor(
+        n_estimators=40,
+        max_depth=12,
+        min_samples_leaf=10,
+        n_jobs=-1,
+        random_state=42
+    )
+
+    model = Pipeline(steps=[
+        ("preprocessor", preprocessor),
+        ("rf", rf)
+    ])
+
+    model.fit(X_train, y_train)
+
+    y_pred = model.predict(X_test)
+    rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+    r2 = r2_score(y_test, y_pred)
+
+    return model, rmse, r2
+
+
+
+
+
+
 # --------------------------------------------------
 # Cargar datos y modelo
 # --------------------------------------------------
@@ -263,4 +323,5 @@ elif section == "📝 Conclusiones":
     """)
 
     st.markdown("Gracias por revisar el proyecto 🙌. Esta aplicación forma parte del Proyecto Final de Ciencia de Datos.")
+
 
