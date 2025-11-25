@@ -20,8 +20,53 @@ def load_data():
 
 df = load_data()
 
+st.set_page_config(page_title="Proyecto Final – Vehículos", layout="wide")
 st.title("🚗 Análisis y Predicción de Precios de Vehículos Usados")
 st.write("Proyecto Final · Ciencia de Datos · Frida Arizmendi")
+
+# ============================================================
+# Filtros (Sidebar)
+# ============================================================
+st.sidebar.header("🔎 Filtros")
+
+manu_opts = sorted(df["manufacturer"].dropna().unique())
+manu_sel = st.sidebar.multiselect("Fabricante", manu_opts, default=manu_opts[:5])
+
+year_min, year_max = int(df["year"].min()), int(df["year"].max())
+year_range = st.sidebar.slider("Rango de año", year_min, year_max, (year_min, year_max))
+
+cond_opts = sorted(df["condition"].dropna().unique())
+cond_sel = st.sidebar.multiselect("Condición", cond_opts, default=cond_opts)
+
+# Aplicación de filtros
+filtered = df.copy()
+if manu_sel:
+    filtered = filtered[filtered["manufacturer"].isin(manu_sel)]
+
+filtered = filtered[(filtered["year"] >= year_range[0]) &
+                    (filtered["year"] <= year_range[1])]
+
+if cond_sel:
+    filtered = filtered[filtered["condition"].isin(cond_sel)]
+
+st.sidebar.write(f"Registros filtrados: **{len(filtered):,}**")
+
+# ============================================================
+# KPIs
+# ============================================================
+st.header("📊 Dashboard – KPIs principales")
+
+if len(filtered) == 0:
+    st.warning("No hay datos con los filtros seleccionados.")
+else:
+    col1, col2, col3, col4 = st.columns(4)
+
+    col1.metric("Total de vehículos", f"{len(filtered):,}")
+    col2.metric("Precio promedio", f"${filtered['price'].mean():,.0f}")
+    col3.metric("Año promedio", f"{filtered['year'].mean():.0f}")
+    col4.metric("Km promedio", f"{filtered['odometer'].mean():,.0f}")
+
+
 
 # ============================================================
 # Sección 1: Dataset Preview
@@ -177,4 +222,5 @@ input_data = pd.DataFrame([{
 if st.button("Predecir precio"):
     pred = model.predict(input_data)[0]
     st.success(f"💰 El precio estimado del vehículo es: **${pred:,.2f} USD**")
+
 
